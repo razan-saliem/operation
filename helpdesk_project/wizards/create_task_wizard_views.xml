@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_create_task_wizard_form" model="ir.ui.view">
+        <field name="name">create.task.wizard.form</field>
+        <field name="model">create.task.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Create Project Task">
+                <group>
+                    <group>
+                        <field name="ticket_id" readonly="1" options="{'no_open': True}"/>
+                        <field name="project_id" options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="name"/>
+                        <field name="user_ids" widget="many2one_avatar_user"/>
+                    </group>
+                </group>
+                <notebook>
+                    <page string="Description" name="description">
+                        <field name="description" placeholder="Add task description here..."/>
+                    </page>
+                </notebook>
+                <footer>
+                    <button name="action_create_task" string="Create Task" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

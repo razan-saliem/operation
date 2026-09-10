@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="helpdesk_ticket_view_form_inherit" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.view.form.inherit</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="moad_helpdesk.helpdesk_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_open_create_task_wizard"
+                        string="Create Task"
+                        type="object"
+                        class="oe_highlight"/>
+            </xpath>
+
+            <xpath expr="//sheet" position="inside">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_tasks"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-tasks">
+                        <field name="task_count" widget="statinfo" string="Tasks"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
