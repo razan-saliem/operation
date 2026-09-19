@@ -24,4 +24,20 @@
             </xpath>
         </field>
     </record>
+
+    <record id="helpdesk_ticket_view_kanban_inherit_project" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.kanban.inherit.project</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="moad_helpdesk.helpdesk_ticket_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//footer" position="inside">
+                <button name="action_open_create_task_wizard"
+                        type="object"
+                        class="btn btn-sm btn-secondary ms-auto"
+                        title="Create Task">
+                    <i class="fa fa-tasks me-1" role="img" aria-label="Create Task"/>Create Task
+                </button>
+            </xpath>
+        </field>
+    </record>
 </odoo>
