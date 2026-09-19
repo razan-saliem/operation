@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!--
+        Extends web.PropertyDefinition (see property_definition.xml in the
+        `web` addon) so the three places that render a property type's icon
+        resolve "color" / "icon" to the PNGs shipped by this module instead
+        of core's (read-only) icons folder. Everything else - the label,
+        the type dropdown list, the "Default Value" editor - is inherited
+        unchanged; the Default Value editor renders through PropertyValue,
+        patched separately in property_value_templates.xml.
+    -->
+    <t t-name="custom_property_extensions.PropertyDefinitionTypeIcons"
+        t-inherit="web.PropertyDefinition" t-inherit-mode="extension">
+
+        <!-- 1. Readonly header icon (props.readonly === true) -->
+        <xpath expr="//img[@class='me-3']" position="replace">
+            <img class="me-3"
+                t-att-src="getPropertyTypeIconUrl(state.propertyDefinition.x_widget || state.propertyDefinition.type)"/>
+        </xpath>
+
+        <!-- 2. Icon shown on the closed Dropdown button -->
+        <xpath expr="//img[@class='position-relative z-1 me-n4']" position="replace">
+            <img t-att-src="getPropertyTypeIconUrl(state.propertyDefinition.x_widget || state.propertyDefinition.type)"
+                class="position-relative z-1 me-n4"/>
+        </xpath>
+
+        <!-- 3. Icon shown for each option inside the open Dropdown -->
+        <xpath expr="//img[@class='me-2']" position="replace">
+            <img class="me-2" t-att-src="getPropertyTypeIconUrl(option[0])"/>
+        </xpath>
+
+        <!--
+            The "Default Value" row renders through PropertyValue, whose
+            `type` prop drives which widget it shows (see
+            property_value_templates.xml). The definition's *persisted*
+            `type` is always a real backend type ('char' for Color/Icon -
+            see property_definition_patch.js), so pass the *effective*
+            type here instead, purely for this child's rendering: it is
+            never written back anywhere.
+        -->
+        <xpath expr="//PropertyValue" position="attributes">
+            <attribute name="type">state.propertyDefinition.x_widget || state.propertyDefinition.type</attribute>
+        </xpath>
+
+        <!--
+            Thread the per-option color map down into the Selection
+            options editor (see property_definition_selection_patch.js).
+        -->
+        <xpath expr="//PropertyDefinitionSelection" position="attributes">
+            <attribute name="optionColors">state.propertyDefinition.x_selection_colors || {}</attribute>
+            <attribute name="onOptionColorsChange.bind">onSelectionColorsChange</attribute>
+        </xpath>
+
+    </t>
+</templates>

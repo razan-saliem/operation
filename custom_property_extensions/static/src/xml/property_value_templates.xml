@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!--
+        Extends web.PropertyValue (see property_value.xml in the `web`
+        addon). This single component is reused by Odoo everywhere a
+        property is displayed: the "Default Value" row of the definition
+        popover, the property's own form-view input, list-view cells, and
+        Kanban card badges (when "Display in Cards" is enabled) - so
+        extending it here is enough to cover all of those surfaces at once.
+    -->
+    <t t-name="custom_property_extensions.PropertyValueColorIcon"
+        t-inherit="web.PropertyValue" t-inherit-mode="extension">
+
+        <!--
+            The generic readonly branch (plain <span t-out="displayValue"/>)
+            is only meant for simple scalar types; color/icon get their own
+            richer readonly rendering below, so exclude them from it here,
+            the same way boolean/many2one/many2many/tags already are.
+        -->
+        <xpath expr="//t[@t-if=&quot;props.readonly and !['boolean', 'many2one', 'many2many', 'tags'].includes(props.type)&quot;]"
+            position="attributes">
+            <attribute name="t-if">props.readonly and !['boolean', 'many2one', 'many2many', 'tags', 'color', 'icon', 'selection'].includes(props.type)</attribute>
+        </xpath>
+
+        <!--
+            Selection values: replace core's plain <select> with a version
+            that shows the option's color (via `x_selection_colors`,
+            passed down as the `optionColors` prop - see
+            property_value_patch.js) as a full colored tag, both in
+            readonly mode and, via a Dropdown picker, in edit mode - so
+            Form view and Kanban render it identically.
+        -->
+        <xpath expr="//t[@t-elif=&quot;props.type === 'selection'&quot;]" position="replace">
+            <t t-elif="props.type === 'selection'">
+                <t t-if="props.readonly">
+                    <span t-if="propertyValue"
+                        class="o_property_selection_badge badge"
+                        t-attf-style="{{getSelectionBadgeStyle(propertyValue)}}"
+                        t-out="getSelectionLabel(propertyValue)"/>
+                </t>
+                <Dropdown t-else="">
+                    <button type="button" class="btn btn-link p-0 text-start" t-att-id="props.id">
+                        <span t-if="propertyValue"
+                            class="o_property_selection_badge badge"
+                            t-attf-style="{{getSelectionBadgeStyle(propertyValue)}}"
+                            t-out="getSelectionLabel(propertyValue)"/>
+                        <span t-else="" class="o_property_selection_placeholder text-muted fst-italic">
+                            Select...
+                        </span>
+                    </button>
+                    <t t-set-slot="content">
+                        <div class="o_property_selection_options d-flex flex-column gap-1 p-2" style="min-width: 160px;">
+                            <DropdownItem onSelected.bind="() => this.onValueChange(false)">
+                                <span class="text-muted fst-italic">None</span>
+                            </DropdownItem>
+                            <t t-foreach="props.selection || []" t-as="option" t-key="option[0]">
+                                <DropdownItem onSelected.bind="() => this.onValueChange(option[0])">
+                                    <span class="o_property_selection_badge badge"
+                                        t-attf-style="{{getSelectionBadgeStyle(option[0])}}"
+                                        t-out="option[1]"/>
+                                </DropdownItem>
+                            </t>
+                        </div>
+                    </t>
+                </Dropdown>
+            </t>
+        </xpath>
+
+        <!-- Insert the two new branches into the type elif-chain, right after many2many. -->
+        <xpath expr="//t[@t-elif=&quot;props.type === 'many2many'&quot;]" position="after">
+
+            <t t-elif="props.type === 'color'">
+                <div class="o_field_property_color_value d-flex align-items-center gap-2">
+                    <t t-if="props.readonly">
+                        <span class="o_property_color_badge rounded-circle border"
+                            t-attf-style="{{colorBadgeStyle}} width:14px; height:14px; display:inline-block;"
+                            t-att-title="propertyValue"/>
+<!--                        <span t-out="propertyValue"/>-->
+                    </t>
+                    <t t-else="">
+                        <Dropdown>
+                            <button type="button" class="btn btn-link p-0" t-att-id="props.id" title="Pick a color">
+                                <span class="o_property_color_badge rounded-circle border"
+                                    t-attf-style="{{colorBadgeStyle}} width:18px; height:18px; display:inline-block;"/>
+                            </button>
+                            <t t-set-slot="content">
+                                <div class="o_property_color_palette d-flex flex-wrap gap-1 p-2" style="max-width: 168px;">
+                                    <t t-foreach="colorPresets" t-as="color" t-key="color">
+                                        <span class="o_property_color_swatch rounded-circle border"
+                                            t-attf-style="background-color: {{color}}; width:18px; height:18px; cursor:pointer; display:inline-block;"
+                                            t-att-title="color"
+                                            t-on-click="() => this.onColorSelected(color)"/>
+                                    </t>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 px-2 pb-2">
+                                    <input type="color"
+                                        t-att-value="propertyValue || '#FFFFFF'"
+                                        t-on-change="(ev) => this.onColorSelected(ev.target.value)"/>
+                                    <input type="text" class="o_input o_field_property_input flex-grow-1"
+                                        placeholder="#RRGGBB"
+                                        t-att-value="propertyValue"
+                                        t-on-change="(ev) => this.onColorSelected(ev.target.value)"/>
+                                </div>
+                            </t>
+                        </Dropdown>
+                    </t>
+                </div>
+            </t>
+
+            <t t-elif="props.type === 'icon'">
+                <div class="o_field_property_icon_value d-flex align-items-center gap-2">
+                    <t t-if="props.readonly">
+                        <i t-attf-class="fa {{iconBadgeClass}}" role="img" t-att-title="propertyValue"/>
+<!--                        <span t-out="propertyValue"/>-->
+                    </t>
+                    <t t-else="">
+                        <Dropdown>
+                            <button type="button" class="btn btn-link p-0" t-att-id="props.id" title="Pick an icon">
+                                <i t-attf-class="fa {{iconBadgeClass}} fa-lg"/>
+                            </button>
+                            <t t-set-slot="content">
+                                <div class="o_property_icon_palette d-flex flex-wrap gap-2 p-2" style="max-width: 200px;">
+                                    <t t-foreach="iconPresets" t-as="icon" t-key="icon">
+                                        <DropdownItem onSelected.bind="() => this.onIconSelected(icon)">
+                                            <i t-attf-class="fa {{icon}}" t-att-title="icon"/>
+                                        </DropdownItem>
+                                    </t>
+                                </div>
+                                <div class="px-2 pb-2">
+                                    <input type="text" class="o_input o_field_property_input w-100"
+                                        placeholder="fa-star"
+                                        t-att-value="propertyValue"
+                                        t-on-change="(ev) => this.onIconSelected(ev.target.value)"/>
+                                </div>
+                            </t>
+                        </Dropdown>
+                    </t>
+                </div>
+            </t>
+
+        </xpath>
+    </t>
+</templates>

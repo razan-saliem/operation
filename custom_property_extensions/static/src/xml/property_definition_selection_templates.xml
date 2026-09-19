@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!--
+        Extends web.PropertyDefinitionSelection (property_definition_selection.xml
+        in the `web` addon). Inserts a color swatch / picker right before the
+        existing "Select Default" star button on each option row:
+          - readonly: a plain, non-interactive dot showing the option's color.
+          - editable: a Dropdown button that opens a palette to pick/clear it.
+    -->
+    <t t-name="custom_property_extensions.PropertyDefinitionSelectionColor"
+        t-inherit="web.PropertyDefinitionSelection" t-inherit-mode="extension">
+
+        <xpath expr="//button[@title='Select Default']" position="before">
+
+            <span t-if="props.readonly"
+                class="o_property_option_color_dot rounded-circle border d-inline-block me-2"
+                t-attf-style="width:12px; height:12px; background-color: {{getOptionColorHex(getOptionColorIndex(option)) || 'transparent'}};"
+                t-att-title="getOptionColorHex(getOptionColorIndex(option)) ? 'Color' : 'No Color'"/>
+
+            <Dropdown t-else="">
+                <button type="button" class="btn btn-link m-0 p-0 me-2" title="Pick a Color">
+                    <span class="o_property_option_color_dot rounded-circle border d-inline-block"
+                        t-attf-style="width:14px; height:14px; background-color: {{getOptionColorHex(getOptionColorIndex(option)) || 'transparent'}};"/>
+                </button>
+                <t t-set-slot="content">
+                    <div class="o_property_option_color_palette d-flex flex-wrap gap-1 p-2" style="max-width: 150px;">
+                        <t t-foreach="colorSwatchIndexes" t-as="colorIndex" t-key="colorIndex">
+                            <span t-if="colorIndex === 0"
+                                class="o_property_option_color_dot o_property_no_color rounded-circle border d-inline-block"
+                                style="width:16px; height:16px; cursor:pointer;"
+                                title="No Color"
+                                t-on-click="() => this.onOptionColorSelected(option_index, 0)"/>
+                            <span t-else=""
+                                class="o_property_option_color_dot rounded-circle border d-inline-block"
+                                t-attf-style="width:16px; height:16px; cursor:pointer; background-color: {{getOptionColorHex(colorIndex)}};"
+                                t-att-title="'Color ' + colorIndex"
+                                t-on-click="() => this.onOptionColorSelected(option_index, colorIndex)"/>
+                        </t>
+                    </div>
+                </t>
+            </Dropdown>
+
+        </xpath>
+    </t>
+</templates>

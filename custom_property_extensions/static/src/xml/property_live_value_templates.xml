@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!--
+        These are the two places core actually renders a property's LIVE
+        value (as opposed to the "Default Value" row inside the
+        definition-builder popover, already handled in
+        property_definition_templates.xml): the Form view
+        (web.PropertiesField) and the Kanban card badge
+        (web.CardPropertiesField). Both call <PropertyValue> with the same
+        shape of props, built from `propertyConfiguration` - the raw
+        property definition, backend `type` included - so both need the
+        same two attribute overrides:
+
+        1. `type` is redirected through the *effective* type (`x_widget`
+           for Color/Icon, since the persisted `type` is always "char" -
+           see property_definition_patch.js for why).
+        2. `optionColors` is threaded through so Selection's per-option
+           colors (`x_selection_colors`) reach the badge - see
+           property_value_patch.js.
+
+        Neither attribute is ever written back anywhere: PropertyValue
+        only reads them to decide how to render / which widget to show.
+    -->
+
+    <t t-name="custom_property_extensions.PropertiesFieldLiveColors"
+        t-inherit="web.PropertiesField" t-inherit-mode="extension">
+        <xpath expr="//PropertyValue" position="attributes">
+            <attribute name="type">propertyConfiguration.x_widget || propertyConfiguration.type</attribute>
+            <attribute name="optionColors">propertyConfiguration.x_selection_colors || {}</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="custom_property_extensions.CardPropertiesFieldLiveColors"
+        t-inherit="web.CardPropertiesField" t-inherit-mode="extension">
+        <xpath expr="//PropertyValue" position="attributes">
+            <attribute name="type">propertyConfiguration.x_widget || propertyConfiguration.type</attribute>
+            <attribute name="optionColors">propertyConfiguration.x_selection_colors || {}</attribute>
+        </xpath>
+    </t>
+
+</templates>
